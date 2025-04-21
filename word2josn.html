@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>محول Word إلى JSON - موحد</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+  <style>
+  /* 
+   * محول Word إلى JSON - موحد
+   * ملف الأنماط (CSS)
+   */
+
+  :root {
+    --primary-color: #4CAF50;
+    --primary-hover: #388E3C;
+    --secondary-color: #2196F3;
+    --secondary-hover: #1976D2;
+    --error-color: #F44336;
+    --success-color: #4CAF50;
+    --warning-color: #FFC107;
+    --light-bg: #f9f9f9;
+    --dark-text: #333;
+    --light-text: #fff;
+    --border-color: #ddd;
+    --shadow-color: rgba(0,0,0,0.1);
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--light-bg);
+    color: var(--dark-text);
+    line-height: 1.6;
+    padding: 20px;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px var(--shadow-color);
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: var(--primary-color);
+  }
+
+  h2 {
+    margin: 15px 0;
+    color: var(--secondary-color);
+  }
+
+  /* File Upload Styling */
+  .file-upload-container {
+    margin: 20px 0;
+    text-align: center;
+  }
+
+  .file-upload-label {
+    display: inline-block;
+    padding: 12px 20px;
+    background-color: var(--secondary-color);
+    color: var(--light-text);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .file-upload-label:hover {
+    background-color: var(--secondary-hover);
+  }
+
+  .upload-icon {
+    font-size: 1.5em;
+    margin-left: 10px;
+  }
+
+  .file-upload-input {
+    display: none;
+  }
+
+  .file-name {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: var(--dark-text);
+  }
+
+  /* Form Controls */
+  .form-group {
+    margin: 15px 0;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: #fff;
+  }
+
+  /* Buttons */
+  .button-group {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 12px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, opacity 0.3s;
+  }
+
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .primary {
+    background-color: var(--primary-color);
+    color: var(--light-text);
+  }
+
+  .primary:hover:not(:disabled) {
+    background-color: var(--primary-hover);
+  }
+
+  .secondary {
+    background-color: var(--secondary-color);
+    color: var(--light-text);
+  }
+
+  .secondary:hover:not(:disabled) {
+    background-color: var(--secondary-hover);
+  }
+
+  /* Progress Bar */
+  .progress-container {
+    margin: 20px 0;
+  }
+
+  .progress-bar {
+    height: 20px;
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .progress {
+    height: 100%;
+    background-color: var(--primary-color);
+    width: 0%;
+    transition: width 0.3s;
+  }
+
+  .progress-text {
+    text-align: center;
+    margin-top: 5px;
+    font-size: 0.9em;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  /* Results Section */
+  .result-container {
+    margin-top: 30px;
+  }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+  }
+
+  .question-count {
+    font-weight: bold;
+    color: var(--primary-color);
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 15px;
+  }
+
+  .tab-btn {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.7;
+    transition: opacity 0.3s, border-bottom 0.3s;
+  }
+
+  .tab-btn.active {
+    opacity: 1;
+    border-bottom: 3px solid var(--primary-color);
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  /* JSON Output */
+  .json-output {
+    background-color: #f4f4f4;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    overflow-x: auto;
+    font-family: 'Courier New', Courier, monospace;
+    white-space: pre-wrap;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  /* Preview Section */
+  .preview-container {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .question-card {
+    background-color: #f9f9f9;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+
+  .question-text {
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  .question-image {
+    max-width: 100%;
+    margin: 10px 0;
+  }
+
+  .options-list {
+    list-style-type: none;
+  }
+
+  .option-item {
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 5px;
+  }
+
+  .option-item.correct {
+    background-color: rgba(76, 175, 80, 0.2);
+    border-right: 3px solid var(--success-color);
+  }
+
+  .option-image {
+    max-width: 100%;
+    margin: 5px 0;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .container {
+      padding: 15px;
+    }
+    
+    .button-group {
+      flex-direction: column;
+    }
+    
+    .result-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .question-count {
+      margin-top: 5px;
+    }
+  }
+
+  /* Error Messages */
+  .error-message {
+    background-color: rgba(244, 67, 54, 0.1);
+    color: var(--error-color);
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+    border-right: 3px solid var(--error-color);
+  }
+
+  /* Success Messages */
+  .success-message {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: var(--success-color);
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+    border-right: 3px solid var(--success-color);
+  }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>محول Word إلى JSON - موحد</h1>
+    
+    <div class="file-upload-container">
+      <label for="fileInput" class="file-upload-label">
+        <span class="upload-icon">📄</span>
+        <span class="upload-text">اختر ملف Word</span>
+      </label>
+      <input type="file" id="fileInput" accept=".docx" class="file-upload-input">
+      <div id="fileName" class="file-name"></div>
+    </div>
+    
+    <div class="form-group">
+      <label for="modelSelect">نوع الجدول:</label>
+      <select id="modelSelect" class="form-control">
+        <option value="auto">تلقائي (كشف تلقائي)</option>
+        <option value="noNumber">بدون رقم للسؤال</option>
+        <option value="withNumber">برقم للسؤال</option>
+        <option value="withTitle">مع عنوان</option>
+      </select>
+    </div>
+    
+    <div class="button-group">
+      <button id="convertBtn" class="btn primary" onclick="wordToJsonConverter.convertToJSON()">تحويل إلى JSON</button>
+      <button id="downloadBtn" class="btn secondary" onclick="wordToJsonConverter.downloadJSON()" disabled>تحميل JSON</button>
+    </div>
+    
+    <div id="progressContainer" class="progress-container hidden">
+      <div class="progress-bar">
+        <div id="progressBar" class="progress"></div>
+      </div>
+      <div id="progressText" class="progress-text">جاري المعالجة...</div>
+    </div>
+    
+    <div class="result-container">
+      <div class="result-header">
+        <h2>عدد الأسئلة المستخرجة:</h2>
+        <p id="questionCount" class="question-count">لم يتم استخراج أسئلة بعد.</p>
+      </div>
+      
+      <div class="tabs">
+        <button id="jsonTab" class="tab-btn active" onclick="wordToJsonConverter.showTab('json')">JSON</button>
+        <button id="previewTab" class="tab-btn" onclick="wordToJsonConverter.showTab('preview')">معاينة</button>
+      </div>
+      
+      <div id="jsonOutput" class="tab-content active">
+        <pre id="output" class="json-output">// سيتم عرض JSON هنا</pre>
+      </div>
+      
+      <div id="previewOutput" class="tab-content">
+        <div id="previewContainer" class="preview-container">
+          <!-- سيتم عرض معاينة الأسئلة هنا -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  /**
+   * محول Word إلى JSON - موحد
+   * ملف البرمجة (JavaScript)
+   */
+
+  // تعريف كائن المحول
+  const wordToJsonConverter = {
+    // متغيرات عامة
+    currentData: null,
+    activeTab: 'json',
+    
+    // تهيئة التطبيق
+    init: function() {
+      // إضافة مستمعي الأحداث
+      document.getElementById('fileInput').addEventListener('change', this.handleFileSelect.bind(this));
+      
+      // تعطيل زر التحميل في البداية
+      document.getElementById('downloadBtn').disabled = true;
+      
+      // إضافة مستمع للأخطاء غير المتوقعة
+      window.addEventListener('error', this.handleGlobalError.bind(this));
+      
+      console.log('تم تهيئة المحول بنجاح');
+    },
+    
+    // معالجة اختيار الملف
+    handleFileSelect: function(event) {
+      const fileInput = event.target;
+      const fileName = document.getElementById('fileName');
+      
+      // إعادة تعيين واجهة المستخدم
+      this.resetUI();
+      
+      if (fileInput.files.length) {
+        const file = fileInput.files[0];
+        
+        // التحقق من نوع الملف
+        if (!file.name.endsWith('.docx')) {
+          this.showError('يرجى اختيار ملف Word بامتداد .docx فقط.');
+          fileInput.value = '';
+          return;
+        }
+        
+        // عرض اسم الملف
+        fileName.textContent = file.name;
+        
+        console.log(`تم اختيار الملف: ${file.name}`);
+      } else {
+        fileName.textContent = '';
+      }
+    },
+    
+    // تحويل ملف Word إلى JSON
+    convertToJSON: function() {
+      const fileInput = document.getElementById('fileInput');
+      const output = document.getElementById('output');
+      const questionCount = document.getElementById('questionCount');
+      const modelSelect = document.getElementById('modelSelect').value;
+      const progressContainer = document.getElementById('progressContainer');
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+      
+      // التحقق من وجود ملف
+      if (!fileInput.files.length) {
+        this.showError('يرجى اختيار ملف Word أولاً.');
+        return;
+      }
+      
+      // إظهار شريط التقدم
+      progressContainer.classList.remove('hidden');
+      progressBar.style.width = '10%';
+      progressText.textContent = 'جاري قراءة الملف...';
+      
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        try {
+          const arrayBuffer = event.target.result;
+          
+          // تحديث شريط التقدم
+          progressBar.style.width = '30%';
+          progressText.textContent = 'جاري تحويل الملف إلى HTML...';
+          
+          mammoth.convertToHtml({
+            arrayBuffer: arrayBuffer,
+            convertImage: mammoth.images.inline(function(element) {
+              return new Promise(function(resolve) {
+                const src = element.readAsBase64();
+                resolve("data:" + element.contentType + ";base64," + src);
+              });
+            })
+          })
+          .then((result) => {
+            // تحديث شريط التقدم
+            progressBar.style.width = '60%';
+            progressText.textContent = 'جاري استخراج الجداول...';
+            
+            const container = document.createElement("div");
+            container.innerHTML = result.value;
+            const tables = container.querySelectorAll("table");
+            const quiz = [];
+            
+            // التحقق من وجود جداول
+            if (tables.length === 0) {
+              this.showError('لم يتم العثور على أي جداول في الملف.');
+              progressContainer.classList.add('hidden');
+              return;
+            }
+            
+            // تحديث شريط التقدم
+            progressBar.style.width = '80%';
+            progressText.textContent = 'جاري معالجة الجداول...';
+            
+            // معالجة كل جدول
+            tables.forEach((table) => {
+              const data = this.processTable(table, modelSelect);
+              if (data !== null) {
+                quiz.push(data);
+              }
+            });
+            
+            // تحديث شريط التقدم
+            progressBar.style.width = '100%';
+            progressText.textContent = 'اكتمل التحويل!';
+            
+            // حفظ البيانات وعرضها
+            this.currentData = JSON.stringify(quiz, null, 2);
+            output.textContent = this.currentData;
+            
+            // تحديث عدد الأسئلة
+            const count = quiz.length;
+            questionCount.textContent = `تم استخراج ${this.convertToIndicNumbers(count.toString())} سؤالاً.`;
+            
+            // تمكين زر التحميل
+            document.getElementById('downloadBtn').disabled = false;
+            
+            // إنشاء معاينة الأسئلة
+            this.createPreview(quiz);
+            
+            // إخفاء شريط التقدم بعد فترة قصيرة
+            setTimeout(() => {
+              progressContainer.classList.add('hidden');
+            }, 1000);
+            
+            // عرض رسالة نجاح
+            if (count > 0) {
+              this.showSuccess(`تم تحويل ${this.convertToIndicNumbers(count.toString())} سؤالاً بنجاح.`);
+            } else {
+              this.showWarning('لم يتم استخراج أي أسئلة. تأكد من تنسيق الجداول وحاول مرة أخرى.');
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            this.showError('حدث خطأ أثناء معالجة الملف: ' + error.message);
+            progressContainer.classList.add('hidden');
+          });
+        } catch (error) {
+          console.error("Error:", error);
+          this.showError('حدث خطأ أثناء قراءة الملف: ' + error.message);
+          progressContainer.classList.add('hidden');
+        }
+      };
+      
+      reader.onerror = (error) => {
+        console.error("FileReader Error:", error);
+        this.showError('حدث خطأ أثناء قراءة الملف.');
+        progressContainer.classList.add('hidden');
+      };
+      
+      reader.readAsArrayBuffer(file);
+    },
+    
+    // دالة لتحويل الأرقام إلى الأرقام الهندية/الشرقية
+    convertToIndicNumbers: function(input) {
+      const arabicToIndicMap = {
+        "0": "٠",
+        "1": "١",
+        "2": "٢",
+        "3": "٣",
+        "4": "٤",
+        "5": "٥",
+        "6": "٦",
+        "7": "٧",
+        "8": "٨",
+        "9": "٩"
+      };
+      return input.replace(/[0-9]/g, (digit) => arabicToIndicMap[digit]);
+    },
+    
+    // دالة لمعالجة الجداول وفق النموذج المطلوب
+    processTable: function(table, manualModel) {
+      try {
+        const rows = table.querySelectorAll("tr");
+        
+        // التحقق من وجود صفوف كافية
+        if (rows.length < 3) {
+          return null; // لا تتوافق بنية الجدول مع النماذج
+        }
+        
+        let modelUsed = manualModel;
+        
+        // في حالة اختيار الكشف التلقائي
+        if (manualModel === "auto") {
+          if (rows.length >= 4) {
+            modelUsed = "withTitle";
+          } else if (rows.length === 3) {
+            const firstRowCells = rows[0].querySelectorAll("td");
+            modelUsed = (firstRowCells.length >= 2) ? "withNumber" : "noNumber";
+          } else {
+            return null; // لا تتوافق بنية الجدول مع النماذج
+          }
+        } else {
+          // التأكد من أن الجدول يحتوي على العدد المطلوب من الصفوف لكل نموذج
+          if (modelUsed === "withTitle" && rows.length < 4) return null;
+          if ((modelUsed === "withNumber" || modelUsed === "noNumber") && rows.length < 3) return null;
+        }
+        
+        const data = {
+          question: { text: "", image: "" },
+          options: [],
+          correct: -1
+        };
+        
+        if (modelUsed === "noNumber") {
+          // النموذج دون رقم للسؤال: الصف الأول يحتوي على نص السؤال
+          const questionCell = rows[0].querySelector("td");
+          if (questionCell) {
+            data.question.text = this.convertToIndicNumbers(questionCell.textContent.trim());
+            const questionImage = questionCell.querySelector("img");
+            if (questionImage) {
+              data.question.image = questionImage.src;
+            }
+          }
+          // الصف الثاني: الخيارات الأربعة
+          const optionCells = rows[1].querySelectorAll("td");
+          if (optionCells.length === 4) {
+            optionCells.forEach((cell) => {
+              const option = {
+                text: this.convertToIndicNumbers(cell.textContent.trim()),
+                image: ""
+              };
+              const img = cell.querySelector("img");
+              if (img) option.image = img.src;
+              data.options.push(option);
+            });
+          }
+          // الصف الثالث: رمز الإجابة الصحيحة
+          const correctCells = rows[2].querySelectorAll("td");
+          correctCells.forEach((cell, index) => {
+            if (cell.textContent.trim() === "*" || cell.textContent.trim() === "1") {
+              data.correct = index;
+            }
+          });
+          
+        } else if (modelUsed === "withNumber") {
+          // النموذج مع رقم للسؤال: الصف الأول يحتوي على خليتين؛ الثانية تحتوي على نص السؤال
+          const questionCells = rows[0].querySelectorAll("td");
+          if (questionCells.length >= 2) {
+            const questionCell = questionCells[1];
+            data.question.text = this.convertToIndicNumbers(questionCell.textContent.trim());
+            const questionImage = questionCell.querySelector("img");
+            if (questionImage) data.question.image = questionImage.src;
+          }
+          // الصف الثاني: الخيارات
+          const optionCells = rows[1].querySelectorAll("td");
+          if (optionCells.length === 4) {
+            optionCells.forEach((cell) => {
+              const option = {
+                text: this.convertToIndicNumbers(cell.textContent.trim()),
+                image: ""
+              };
+              const img = cell.querySelector("img");
+              if (img) option.image = img.src;
+              data.options.push(option);
+            });
+          }
+          // الصف الثالث: الإجابة الصحيحة
+          const correctCells = rows[2].querySelectorAll("td");
+          correctCells.forEach((cell, index) => {
+            if (cell.textContent.trim() === "*" || cell.textContent.trim() === "1") {
+              data.correct = index;
+            }
+          });
+          
+        } else if (modelUsed === "withTitle") {
+          // النموذج مع عنوان: نفترض أن الجدول يحتوي على 4 صفوف، مع وجود صف أول (عنوان) لا يتضمن بيانات السؤال
+          const questionCells = rows[1].querySelectorAll("td"); // الصف الثاني يحتوي على رقم السؤال والنص
+          if (questionCells.length >= 2) {
+            const questionCell = questionCells[1]; // الخلية الثانية تحتوي على نص السؤال
+            data.question.text = this.convertToIndicNumbers(questionCell.textContent.trim());
+            const questionImage = questionCell.querySelector("img");
+            if (questionImage) data.question.image = questionImage.src;
+          }
+          // الصف الثالث: الخيارات الأربعة
+          const optionCells = rows[2].querySelectorAll("td");
+          if (optionCells.length === 4) {
+            optionCells.forEach((cell) => {
+              const option = {
+                text: this.convertToIndicNumbers(cell.textContent.trim()),
+                image: ""
+              };
+              const img = cell.querySelector("img");
+              if (img) option.image = img.src;
+              data.options.push(option);
+            });
+          }
+          // الصف الرابع: رمز الإجابة الصحيحة
+          const correctCells = rows[3].querySelectorAll("td");
+          correctCells.forEach((cell, index) => {
+            if (cell.textContent.trim() === "*" || cell.textContent.trim() === "1") {
+              data.correct = index;
+            }
+          });
+        }
+        
+        // التحقق من صحة البيانات المستخرجة
+        if (!data.question.text || data.options.length !== 4 || data.correct === -1) {
+          return null; // بيانات غير مكتملة
+        }
+        
+        return data;
+      } catch (error) {
+        console.error("Error processing table:", error);
+        return null;
+      }
+    },
+    
+    // دالة لتحميل ملف JSON
+    downloadJSON: function() {
+      if (!this.currentData) {
+        this.showError('لا يوجد بيانات JSON للتنزيل.');
+        return;
+      }
+      
+      try {
+        const blob = new Blob([this.currentData], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "quiz.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        this.showSuccess('تم تنزيل ملف JSON بنجاح.');
+      } catch (error) {
+        console.error("Download error:", error);
+        this.showError('حدث خطأ أثناء تنزيل الملف: ' + error.message);
+      }
+    },
+    
+    // دالة لإنشاء معاينة الأسئلة
+    createPreview: function(quiz) {
+      const previewContainer = document.getElementById('previewContainer');
+      previewContainer.innerHTML = '';
+      
+      if (quiz.length === 0) {
+        previewContainer.innerHTML = '<div class="error-message">لا توجد أسئلة للعرض.</div>';
+        return;
+      }
+      
+      quiz.forEach((question, index) => {
+        const questionCard = document.createElement('div');
+        questionCard.className = 'question-card';
+        
+        // إنشاء عنوان السؤال
+        const questionNumber = document.createElement('h3');
+        questionNumber.textContent = `السؤال ${this.convertToIndicNumbers((index + 1).toString())}:`;
+        questionCard.appendChild(questionNumber);
+        
+        // إنشاء نص السؤال
+        const questionText = document.createElement('div');
+        questionText.className = 'question-text';
+        questionText.textContent = question.question.text;
+        questionCard.appendChild(questionText);
+        
+        // إضافة صورة السؤال إذا وجدت
+        if (question.question.image) {
+          const questionImage = document.createElement('img');
+          questionImage.className = 'question-image';
+          questionImage.src = question.question.image;
+          questionImage.alt = 'صورة السؤال';
+          questionCard.appendChild(questionImage);
+        }
+        
+        // إنشاء قائمة الخيارات
+        const optionsList = document.createElement('ul');
+        optionsList.className = 'options-list';
+        
+        // إضافة الخيارات
+        question.options.forEach((option, optIndex) => {
+          const optionItem = document.createElement('li');
+          optionItem.className = 'option-item';
+          
+          // تمييز الإجابة الصحيحة
+          if (optIndex === question.correct) {
+            optionItem.classList.add('correct');
+          }
+          
+          // إضافة نص الخيار
+          const optionText = document.createElement('div');
+          optionText.textContent = `${String.fromCharCode(1632 + optIndex)}. ${option.text}`;
+          optionItem.appendChild(optionText);
+          
+          // إضافة صورة الخيار إذا وجدت
+          if (option.image) {
+            const optionImage = document.createElement('img');
+            optionImage.className = 'option-image';
+            optionImage.src = option.image;
+            optionImage.alt = 'صورة الخيار';
+            optionItem.appendChild(optionImage);
+          }
+          
+          optionsList.appendChild(optionItem);
+        });
+        
+        questionCard.appendChild(optionsList);
+        previewContainer.appendChild(questionCard);
+      });
+    },
+    
+    // دالة لتبديل علامات التبويب
+    showTab: function(tabName) {
+      // تحديث الزر النشط
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.getElementById(tabName + 'Tab').classList.add('active');
+      
+      // تحديث المحتوى النشط
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.getElementById(tabName + 'Output').classList.add('active');
+      
+      this.activeTab = tabName;
+    },
+    
+    // دالة لإعادة تعيين واجهة المستخدم
+    resetUI: function() {
+      document.getElementById('output').textContent = '// سيتم عرض JSON هنا';
+      document.getElementById('questionCount').textContent = 'لم يتم استخراج أسئلة بعد.';
+      document.getElementById('previewContainer').innerHTML = '';
+      document.getElementById('downloadBtn').disabled = true;
+      
+      // إزالة رسائل الخطأ والنجاح
+      document.querySelectorAll('.error-message, .success-message, .warning-message').forEach(el => {
+        el.remove();
+      });
+      
+      this.currentData = null;
+    },
+    
+    // دالة لعرض رسالة خطأ
+    showError: function(message) {
+      this.showMessage(message, 'error');
+    },
+    
+    // دالة لعرض رسالة نجاح
+    showSuccess: function(message) {
+      this.showMessage(message, 'success');
+    },
+    
+    // دالة لعرض رسالة تحذير
+    showWarning: function(message) {
+      this.showMessage(message, 'warning');
+    },
+    
+    // دالة عامة لعرض الرسائل
+    showMessage: function(message, type) {
+      // إزالة الرسائل السابقة من نفس النوع
+      document.querySelectorAll(`.${type}-message`).forEach(el => {
+        el.remove();
+      });
+      
+      const messageElement = document.createElement('div');
+      messageElement.className = `${type}-message`;
+      messageElement.textContent = message;
+      
+      // إضافة الرسالة قبل شريط التقدم
+      const progressContainer = document.getElementById('progressContainer');
+      progressContainer.parentNode.insertBefore(messageElement, progressContainer);
+      
+      // إزالة الرسالة بعد 5 ثوانٍ
+      if (type === 'success') {
+        setTimeout(() => {
+          messageElement.remove();
+        }, 5000);
+      }
+    },
+    
+    // معالجة الأخطاء العامة
+    handleGlobalError: function(event) {
+      console.error('Global error:', event.error);
+      this.showError('حدث خطأ غير متوقع: ' + (event.error ? event.error.message : 'خطأ غير معروف'));
+      return false;
+    }
+  };
+
+  // تهيئة التطبيق عند تحميل الصفحة
+  document.addEventListener('DOMContentLoaded', function() {
+    wordToJsonConverter.init();
+  });
+  </script>
+</body>
+</html>
