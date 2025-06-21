@@ -1,616 +1,754 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="utf-8"/>
-    <title>تحويل جداول Word إلى JSON</title>
+  <meta charset="UTF-8">
+  <title>محول أسئلة Word - نهائي</title>
     <script src="purify.min.js"></script>
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f0f2f5;
-            padding: 20px;
-            color: #333;
-        }
-        h1, h2 {
-            color: #1a73e8;
-        }
-        .btn {
-            background: #1a73e8;
-            color: white;
-            padding: 10px 16px;
-            border: none;
-            border-radius: 6px;
-            margin: 8px 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .btn:hover {
-            background: #1557b0;
-        }
-        .btn.danger {
-            background: #dc3545;
-        }
-        .btn.danger:hover {
-            background: #b02a37;
-        }
-        input[type="file"], input[type="number"] {
-            margin: 10px 0;
-            padding: 6px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        input[type="number"] {
-            width: 60px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin: 20px 0;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-        th {
-            background: #e8f0fe;
-            color: #1a73e8;
-        }
-        .section {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-        #outputArea .card {
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-        .card textarea {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 8px;
-            min-height: 50px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            resize: vertical;
-        }
-        .flex {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .option-box {
-            flex: 1 1 45%;
-            border: 1px dashed #ccc;
-            padding: 10px;
-            border-radius: 6px;
-            background: #f8f9fa;
-        }
-        .option-box.correct {
-            border: 2px solid #28a745;
-            background: #e6f4ea;
-        }
-        .option-box img, .card img {
-            max-width: 100%;
-            max-height: 100px;
-            display: block;
-            margin-top: 5px;
-            border-radius: 4px;
-        }
-        .config-input {
-            margin: 10px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .config-input label {
-            font-weight: bold;
-        }
-        .note {
-            color: #555;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-        .coords-section {
-            margin-bottom: 30px;
-        }
-        .coords-section h3 {
-            color: #1a73e8;
-            margin-bottom: 10px;
-        }
-    </style>
+    <script src="mammoth.browser.min.js"></script>
+  <style>
+    body { 
+      font-family: Arial; 
+      background: #f4f4f4; 
+      direction: rtl; 
+      padding: 20px; 
+      color: #333;
+    }
+    .btn { 
+      background: #007bff; 
+      color: white; 
+      padding: 8px 14px; 
+      margin: 5px; 
+      border: none; 
+      border-radius: 4px; 
+      cursor: pointer; 
+      transition: all 0.3s;
+    }
+    .btn:hover {
+      background: #0069d9;
+      transform: translateY(-2px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .btn.danger { 
+      background: #dc3545; 
+    }
+    .btn.danger:hover {
+      background: #bd2130;
+    }
+    .btn.success {
+      background: #28a745;
+    }
+    .toolbar { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 10px; 
+      margin-bottom: 15px; 
+      padding: 10px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .card { 
+      background: white; 
+      padding: 15px; 
+      border: 1px solid #ddd; 
+      border-radius: 8px; 
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .card-header {
+      background: #f8f9fa;
+      padding: 10px 15px;
+      border-bottom: 1px solid #ddd;
+      border-radius: 8px 8px 0 0;
+      font-weight: bold;
+    }
+    .option-box { 
+      padding: 10px; 
+      border: 1px dashed #ccc; 
+      border-radius: 6px; 
+      margin-bottom: 10px; 
+      transition: all 0.3s;
+    }
+    .option-box:hover {
+      border-color: #aaa;
+      background: #f9f9f9;
+    }
+    .option-box.correct { 
+      border-color: #28a745; 
+      background: #eafbea;
+    }
+    textarea { 
+      width: 100%; 
+      margin: 4px 0; 
+      padding: 8px; 
+      border-radius: 4px; 
+      border: 1px solid #ddd;
+      font-family: Arial;
+      min-height: 60px;
+    }
+    textarea:focus {
+      border-color: #007bff;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+    }
+    img { 
+      max-width: 100%; 
+      max-height: 150px; 
+      display: block; 
+      margin: 10px 0; 
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 5px;
+      background: white;
+    }
+    input[type='number'] { 
+      width: 60px; 
+      padding: 8px; 
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      text-align: center;
+    }
+    input[type='number']:focus {
+      border-color: #007bff;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+    }
+    input[type='number'].invalid {
+      border-color: #dc3545;
+      background: #fff5f5;
+    }
+    label { 
+      display: block; 
+      font-weight: bold; 
+      margin-bottom: 8px;
+      color: #444;
+    }
+    .pair { 
+      display: flex; 
+      justify-content: center; 
+      gap: 10px; 
+      align-items: center; 
+      margin-bottom: 10px;
+    }
+    .alert {
+      padding: 12px 15px;
+      border-radius: 6px;
+      margin: 15px 0;
+      font-size: 14px;
+    }
+    .alert-info {
+      background: #e7f3ff;
+      border: 1px solid #b8daff;
+      color: #004085;
+    }
+    .alert-warning {
+      background: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+    }
+    .stats-bar {
+      margin: 15px 0; 
+      background: #fff; 
+      padding: 15px; 
+      border-radius: 8px; 
+      border: 1px solid #ddd;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .filter-btn {
+      background: #e9ecef;
+      border: none;
+      border-radius: 4px;
+      padding: 3px 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover {
+      background: #d1d7dc;
+    }
+    .coords-section {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .coords-section h3 {
+      margin-top: 0;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+      color: #2c3e50;
+    }
+    .coords-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      background: white;
+    }
+    .coords-table td {
+      border: 1px solid #eaeaea;
+      padding: 15px;
+      text-align: center;
+      vertical-align: top;
+    }
+    .coords-table tr:first-child td {
+      background: #f8f9fa;
+      font-weight: bold;
+    }
+    .coords-table tr:hover td {
+      background: #f9f9f9;
+    }
+    .error-message {
+      color: #dc3545;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    .preview-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 20px;
+    }
+    .preview-card {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      transition: transform 0.3s;
+    }
+    .preview-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .preview-header {
+      background: #2c3e50;
+      color: white;
+      padding: 12px 15px;
+      font-weight: bold;
+    }
+    .preview-body {
+      padding: 15px;
+    }
+    .preview-section {
+      margin-bottom: 15px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eee;
+    }
+    .preview-section:last-child {
+      border-bottom: none;
+    }
+    .preview-options {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .option-preview {
+      padding: 12px;
+      border: 1px solid #eaeaea;
+      border-radius: 6px;
+      background: #f9f9f9;
+    }
+    .option-preview.correct {
+      border-color: #28a745;
+      background: #eafbea;
+    }
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 15px;
+      background: #f8f9fa;
+      border-top: 1px solid #eee;
+    }
+    .no-data {
+      text-align: center;
+      padding: 30px;
+      color: #6c757d;
+      font-style: italic;
+    }
+    /* التعديل الجديد لجعل الخيارات متتالية */
+    .option-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 15px;
+    }
+    .option-item {
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      background: #f8f9fa;
+    }
+    .option-item.correct {
+      border-color: #28a745;
+      background: #eafbea;
+    }
+  </style>
 </head>
 <body>
-    <h1>📝 تحويل جداول Word إلى JSON</h1>
-    <p>🚀 استخراج أسئلة الكويز بسهولة وسرعة</p>
-
-    <div class="section">
-        <h2>📂 رفع ملف Word</h2>
-        <input type="file" id="docxFile" accept=".docx">
+  <h1 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">📄 محول أسئلة Word - النسخة النهائية</h1>
+  
+  <div class="toolbar">
+    <input type="file" id="docxFile" accept=".docx" style="flex-grow: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+    <button class="btn" onclick="processFile()">تحليل الملف</button>
+    <button class="btn success" onclick="exportJSON()">تصدير JSON</button>
+    <button class="btn danger" onclick="clearAll()">حذف الكل</button>
+  </div>
+  
+  <div class="alert alert-info">
+    <strong>ملاحظة هامة:</strong> جميع قيم الصفوف والأعمدة يجب أن تكون 1 أو أكبر. القيم السالبة أو الصفرية غير مسموحة.
+  </div>
+  
+  <div class="coords-section">
+    <h3>⚙️ إعداد إحداثيات عناصر السؤال</h3>
+    
+    <div class="alert alert-warning">
+      <strong>تنبيه:</strong> يرجى التأكد من تعبئة جميع الحقول المطلوبة بقيم صحيحة (1 أو أكبر)
     </div>
-
-    <div class="section">
-        <h2>⚙️ إعدادات الجدول</h2>
-        <div class="config-input">
-            <label>عدد الصفوف لكل سؤال:</label>
-            <input type="number" id="rowsPerQuestion" value="5" min="1">
+    
+    <table class="coords-table">
+      <tr>
+        <td>
+          <label>نص قرائي</label>
+          <div class="pair">
+            <input name="r_reading" type="number" min="1" placeholder="صف" value="">
+            <input name="c_reading" type="number" min="1" placeholder="عمود" value="">
+          </div>
+        </td>
+        <td>
+          <label>صورة النص</label>
+          <div class="pair">
+            <input name="r_reading_img" type="number" min="1" placeholder="صف" value="">
+            <input name="c_reading_img" type="number" min="1" placeholder="عمود" value="">
+          </div>
+        </td>
+        <td>
+          <label>السؤال</label>
+          <div class="pair">
+            <input name="r_question" type="number" min="1" placeholder="صف" value="">
+            <input name="c_question" type="number" min="1" placeholder="عمود" value="">
+          </div>
+        </td>
+        <td>
+          <label>صورة السؤال</label>
+          <div class="pair">
+            <input name="r_question_img" type="number" min="1" placeholder="صف" value="">
+            <input name="c_question_img" type="number" min="1" placeholder="عمود" value="">
+          </div>
+        </td>
+      </tr>
+    </table>
+    
+    <table class="coords-table">
+      <tr>
+        <td>
+          <label>خيار 1</label>
+          <div class="pair">
+            <input name="r_opt1" type="number" min="1" placeholder="صف" value="">
+            <input name="c_opt1" type="number" min="1" placeholder="عمود" value="">
+          </div>
+          <label>صورته</label>
+          <div class="pair">
+            <input name="r_opt1_img" type="number" min="1" placeholder="صف" value="">
+            <input name="c_opt1_img" type="number" min="1" placeholder="عمود" value="">
+          </div>
+        </td>
+        <td>
+          <label>خيار 2</label>
+          <div class="pair">
+            <input name="r_opt2" type="number" min="1" placeholder="صف" value="">
+            <input name="c_opt2" type="number" min="1" placeholder="عمود" value="">
+          </div>
+          <label>صورته</label>
+          <div class="pair">
+            <input name="r_opt2_img" type="number" min="1" placeholder="صف" value="">
+            <input name="c_opt2_img" type="number" min="1" placeholder="عمود" value="">
+          </div>
+        </td>
+        <td>
+          <label>خيار 3</label>
+          <div class="pair">
+            <input name="r_opt3" type="number" min="1" placeholder="صف" value="">
+            <input name="c_opt3" type="number" min="1" placeholder="عمود" value="">
+          </div>
+          <label>صورته</label>
+          <div class="pair">
+            <input name="r_opt3_img" type="number" min="1" placeholder="صف" value="">
+            <input name="c_opt3_img" type="number" min="1" placeholder="عمود" value="">
+          </div>
+        </td>
+        <td>
+          <label>خيار 4</label>
+          <div class="pair">
+            <input name="r_opt4" type="number" min="1" placeholder="صف" value="">
+            <input name="c_opt4" type="number" min="1" placeholder="عمود" value="">
+          </div>
+          <label>صورته</label>
+          <div class="pair">
+            <input name="r_opt4_img" type="number" min="1" placeholder="صف" value="">
+            <input name="c_opt4_img" type="number" min="1" placeholder="عمود" value="">
+          </div>
+        </td>
+      </tr>
+    </table>
+  </div>
+  
+  <div class="stats-bar">
+    <strong>📊 إحصائيات:</strong>
+    <span id="totalCount">الإجمالي: 0</span> |
+    <span id="missingQuestion">بدون سؤال: 0 <button class="filter-btn" onclick="filterQuestions('noQuestion')">🔍</button></span> |
+    <span id="missingOptions">بدون خيارات: 0 <button class="filter-btn" onclick="filterQuestions('noOptions')">🔍</button></span> |
+    <span id="noCorrect">بدون إجابة صحيحة: 0 <button class="filter-btn" onclick="filterQuestions('noCorrect')">🔍</button></span> |
+    <button class="btn" onclick="filterQuestions('all')">عرض الكل</button>
+  </div>
+  
+  <div id="outputArea" class="preview-container"></div>
+  
+  <script>
+  let questions = [];
+  
+  // تأكد من أن القيم موجبة
+  function getInputValue(name) {
+    const input = document.querySelector(`[name="${name}"]`);
+    const value = parseInt(input?.value || 0);
+    
+    // تحقق من صحة القيمة
+    if (value < 1) {
+      input.classList.add('invalid');
+      return 0;
+    }
+    
+    input.classList.remove('invalid');
+    return value;
+  }
+  
+  // التحقق من صحة جميع الإحداثيات
+  function validateCoordinates() {
+    const errors = [];
+    const requiredFields = [
+      'r_reading', 'c_reading',
+      'r_reading_img', 'c_reading_img',
+      'r_question', 'c_question',
+      'r_question_img', 'c_question_img'
+    ];
+    
+    // إضافة حقول الخيارات
+    for (let i = 1; i <= 4; i++) {
+      requiredFields.push(`r_opt${i}`, `c_opt${i}`, `r_opt${i}_img`, `c_opt${i}_img`);
+    }
+    
+    // التحقق من كل حقل
+    requiredFields.forEach(name => {
+      const value = getInputValue(name);
+      if (value < 1) {
+        errors.push(`حقل ${name} يجب أن يحتوي على قيمة موجبة`);
+      }
+    });
+    
+    return { valid: errors.length === 0, errors };
+  }
+  
+  function getCoordinates() {
+    return {
+      reading: [getInputValue("r_reading"), getInputValue("c_reading")],
+      readingImage: [getInputValue("r_reading_img"), getInputValue("c_reading_img")],
+      question: [getInputValue("r_question"), getInputValue("c_question")],
+      questionImage: [getInputValue("r_question_img"), getInputValue("c_question_img")],
+      options: [1,2,3,4].map(i => ({
+        text: [getInputValue(`r_opt${i}`), getInputValue(`c_opt${i}`)],
+        image: [getInputValue(`r_opt${i}_img`), getInputValue(`c_opt${i}_img`)]
+      }))
+    };
+  }
+  
+  function getCell(rows, r, c) {
+    return rows[r - 1]?.querySelectorAll("td")[c - 1] || null;
+  }
+  
+  function extractCell(rows, r, c) {
+    const cell = getCell(rows, r, c);
+    return {
+      text: cell?.textContent.trim() || "",
+      image: cell?.querySelector("img")?.src || null
+    };
+  }
+  
+  function extractQuestion(rows, coords, offset) {
+    const mark = /[\*★*✱∗*]/;
+    const q = {
+      reading: extractCell(rows, coords.reading[0] + offset, coords.reading[1]),
+      question: extractCell(rows, coords.question[0] + offset, coords.question[1]),
+      options: [],
+      optionImages: [],
+      correct: -1
+    };
+  
+    // ✅ حفظ صورة النص القرائي في q.reading.image
+    q.reading.image = extractCell(rows, coords.readingImage[0] + offset, coords.readingImage[1]).image;
+  
+    // ✅ حفظ صورة السؤال في q.question.image
+    q.question.image = extractCell(rows, coords.questionImage[0] + offset, coords.questionImage[1]).image;
+  
+    coords.options.forEach((opt, i) => {
+      const textCell = extractCell(rows, opt.text[0] + offset, opt.text[1]);
+      const imageCell = extractCell(rows, opt.image[0] + offset, opt.image[1]);
+      const belowImageCell = getCell(rows, opt.image[0] + offset + 1, opt.image[1]);
+  
+      if (mark.test(textCell.text)) {
+        q.correct = i;
+        textCell.text = textCell.text.replace(mark, "").trim();
+      } else if (imageCell && mark.test(imageCell.text)) {
+        q.correct = i;
+        imageCell.text = imageCell.text.replace(mark, "").trim();
+      } else if (belowImageCell && mark.test(belowImageCell.textContent)) {
+        q.correct = i;
+        belowImageCell.textContent = belowImageCell.textContent.replace(mark, "").trim();
+      } else {
+        const belowImageCell2 = getCell(rows, opt.image[0] + offset + 2, opt.image[1]);
+        if (belowImageCell2 && mark.test(belowImageCell2.textContent)) {
+          q.correct = i;
+          belowImageCell2.textContent = belowImageCell2.textContent.replace(mark, "").trim();
+        }
+      }
+      q.options.push(textCell);
+      q.optionImages.push(imageCell.image);
+    });
+  
+    return q;
+  }
+  
+  async function processFile() {
+    // التحقق من صحة الإحداثيات أولاً
+    const validation = validateCoordinates();
+    if (!validation.valid) {
+      alert(`⚠️ يوجد أخطاء في الإحداثيات:\n\n${validation.errors.join('\n')}`);
+      return;
+    }
+    
+    const file = document.getElementById("docxFile").files[0];
+    if (!file) {
+      alert("📄 يرجى اختيار ملف Word.");
+      return;
+    }
+    
+    // تحميل المكتبات الديناميكية
+    if (!window.mammoth) {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.17/mammoth.browser.min.js');
+    }
+    if (!window.DOMPurify) {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.3/purify.min.js');
+    }
+       
+    try {
+      const buffer = await file.arrayBuffer();
+      const result = await mammoth.convertToHtml({ arrayBuffer: buffer });
+      const div = document.createElement("div");
+      div.innerHTML = DOMPurify.sanitize(result.value);
+      const coords = getCoordinates();
+      const tables = div.querySelectorAll("table");
+      questions = [];
+  
+      tables.forEach(table => {
+        const rows = Array.from(table.querySelectorAll("tr"));
+        for (let i = 0; i < rows.length;) {
+          const q = extractQuestion(rows, coords, i);
+          if (q.reading.text || q.question.text || q.options.some(opt => opt.text)) {
+            questions.push(q);
+          }
+          i += 4;
+        }
+      });
+  
+      if (questions.length === 0) {
+        alert("⚠️ لم يتم العثور على أي أسئلة في الملف. يرجى التحقق من إعدادات الإحداثيات.");
+      } else {
+        renderPreview();
+      }
+    } catch (error) {
+      console.error("Error processing file:", error);
+      alert(`❌ حدث خطأ أثناء معالجة الملف: ${error.message}`);
+    }
+  }
+  
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+      document.head.appendChild(script);
+    });
+  }
+  
+  function renderPreview() {
+    const out = document.getElementById("outputArea");
+    
+    if (questions.length === 0) {
+      out.innerHTML = `<div class="no-data">لا توجد أسئلة متاحة للعرض. يرجى تحميل ملف أولاً.</div>`;
+      document.getElementById("totalCount").textContent = `الإجمالي: 0`;
+      document.getElementById("missingQuestion").innerHTML = `بدون سؤال: 0`;
+      document.getElementById("missingOptions").innerHTML = `بدون خيارات: 0`;
+      document.getElementById("noCorrect").innerHTML = `بدون إجابة صحيحة: 0`;
+      return;
+    }
+    
+    let html = '';
+    let missingQ = 0, missingOpts = 0, noCorrect = 0;
+    const filter = window.activeFilter || "all";
+    
+    questions.forEach((q, i) => {
+      const hasQ = !!q.question.text.trim();
+      const hasOpts = q.options.some(opt => opt.text.trim() || opt.image);
+      const hasCorrect = q.correct !== -1;
+  
+      if (!hasQ) missingQ++;
+      if (!hasOpts) missingOpts++;
+      if (!hasCorrect) noCorrect++;
+  
+      const showThis = (
+        filter === "all" ||
+        (filter === "noQuestion" && !hasQ) ||
+        (filter === "noOptions" && !hasOpts) ||
+        (filter === "noCorrect" && !hasCorrect)
+      );
+      
+      if (!showThis) return;
+      
+      html += `
+        <div class="preview-card">
+          <div class="preview-header">سؤال ${i + 1}</div>
+          <div class="preview-body">
+            <div class="preview-section">
+              <strong>📘 نص قرائي:</strong>
+              <textarea onchange="questions[${i}].reading.text=this.value">${q.reading.text}</textarea>
+              ${q.reading.image ? `<img src="${q.reading.image}">` : ""}
+              <input type="file" accept="image/*" onchange="uploadImage(event, ${i}, 'readingImage')">
+            </div>
+            
+            <div class="preview-section">
+              <strong>❓ السؤال:</strong>
+              <textarea onchange="questions[${i}].question.text=this.value">${q.question.text}</textarea>
+              ${q.question.image ? `<img src="${q.question.image}">` : ""}
+              <input type="file" accept="image/*" onchange="uploadImage(event, ${i}, 'questionImage')">
+            </div>
+            
+            <div class="preview-section">
+              <strong>🟦 الخيارات:</strong>
+              <div class="option-container">
+                ${q.options.map((opt, j) => `
+                  <div class="option-item ${q.correct === j ? 'correct' : ''}">
+                    <div><strong>خيار ${j + 1}:</strong></div>
+                    <textarea onchange="questions[${i}].options[${j}].text=this.value">${opt.text}</textarea>
+                    ${q.optionImages[j] ? `<img src="${q.optionImages[j]}">` : ""}
+                    <input type="file" accept="image/*" onchange="uploadOptionImage(event, ${i}, ${j})">
+                    <button class="btn" onclick="setCorrectAnswer(${i}, ${j})" style="margin-top:8px;width:100%;">
+                      ✅ إجابة صحيحة
+                    </button>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+          </div>
+          <div class="controls">
+            <button class="btn danger" onclick="deleteQuestion(${i})">حذف السؤال</button>
+          </div>
         </div>
-
-        <div class="coords-section">
-            <h3>🧭 إحداثيات النص القرائي والسؤال</h3>
-            <p class="note">ℹ️ يمكن تحديد خلايا مختلفة أو نفس الخلية للنص وصورته (مثل نص وصورة في الصف 1، العمود 1).</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>📘 نص قرائي</th>
-                        <th>🖼️ صورة النص</th>
-                        <th>❓ سؤال</th>
-                        <th>🖼️ صورة السؤال</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><input type="number" name="r_reading" placeholder="صف" min="1"><input type="number" name="c_reading" placeholder="عمود" min="1"></td>
-                        <td><input type="number" name="r_reading_img" placeholder="صف" min="1"><input type="number" name="c_reading_img" placeholder="عمود" min="1"></td>
-                        <td><input type="number" name="r_question" placeholder="صف" min="1"><input type="number" name="c_question" placeholder="عمود" min="1"></td>
-                        <td><input type="number" name="r_question_img" placeholder="صف" min="1"><input type="number" name="c_question_img" placeholder="عمود" min="1"></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="coords-section">
-            <h3>🟦 إحداثيات الخيارات</h3>
-            <p class="note">ℹ️ يمكن تحديد خلايا مختلفة أو نفس الخلية لنص الخيار وصورته (مثل نص وصورة في الصف 3، العمود 1).</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>① نص الخيار 1</th>
-                        <th>🖼️ صورة الخيار 1</th>
-                        <th>② نص الخيار 2</th>
-                        <th>🖼️ صورة الخيار 2</th>
-                        <th>③ نص الخيار 3</th>
-                        <th>🖼️ صورة الخيار 3</th>
-                        <th>④ نص الخيار 4</th>
-                        <th>🖼️ صورة الخيار 4</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><input type="number" name="r_opt1" placeholder="صف" min="1"><input type="number" name="c_opt1" placeholder="عمود" min="1"></td>
-                        <td><input type="number" name="r_opt1_img" placeholder="صف" min="1"><input type="number" name="c_opt1_img" placeholder="عمود" min="1"></td>
-                        <td><input type="number" name="r_opt2" placeholder="صف" min="1"><input type="number" name="c_opt2" placeholder="عمود" min="1"></td>
-                        <td><input type="number" name="r_opt2_img" placeholder="صف" min="1"><input type="number" name="c_opt2_img" placeholder="عمود" min="1"></td>
-                        <td><input type="number" name="r_opt3" placeholder="صف" min="1"><input type="number" name="c_opt3" placeholder="عمود" min="1"></td>
-                        <td><input type="number" name="r_opt3_img" placeholder="صف" min="1"><input type="number" name="c_opt3_img" placeholder="عمود" min="1"></td>
-                        <td><input type="number" name="r_opt4" placeholder="صف" min="1"><input type="number" name="c_opt4" placeholder="عمود" min="1"></td>
-                        <td><input type="number" name="r_opt4_img" placeholder="صف" min="1"><input type="number" name="c_opt4_img" placeholder="عمود" min="1"></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <button class="btn danger" onclick="questions.length = 0; renderPreview()">🗑️ حذف الأسئلة</button>
-    </div>
-
-    <div class="section">
-        <h2>🔍 تحليل الجدول</h2>
-        <button class="btn" onclick="processFile()">بدء التحليل</button>
-    </div>
-
-    <div class="section">
-        <h2>📋 معاينة الأسئلة</h2>
-        <div id="outputArea"></div>
-    </div>
-
-    <div style="text-align: center; margin-bottom: 40px;">
-        <button class="btn" onclick="exportJSON()">💾 تصدير JSON</button>
-    </div>
-
-    <script src="mammoth.browser.min.js"></script>
-    <script>
-        const questions = [];
-
-        /**
-         * التحقق مما إذا كان الصف فارغًا.
-         * @param {HTMLTableRowElement} row - الصف.
-         * @returns {boolean} true إذا كان الصف فارغًا.
-         */
-        function isRowEmpty(row) {
-            const cells = row.querySelectorAll('td');
-            return Array.from(cells).every(cell => !cell.textContent.trim() && !cell.querySelector('img'));
-        }
-
-        /**
-         * حساب عدد الأعمدة المنطقية مع الأخذ في الاعتبار colspan.
-         * @param {HTMLTableRowElement} row - الصف.
-         * @returns {number} عدد الأعمدة المنطقية.
-         */
-        function getLogicalColumnCount(row) {
-            let count = 0;
-            const cells = row.querySelectorAll('td');
-            cells.forEach(cell => {
-                const colspan = parseInt(cell.getAttribute('colspan') || 1);
-                count += colspan;
-            });
-            return count;
-        }
-
-        /**
-         * التحقق من صحة الإحداثيات بناءً على عدد الأعمدة المنطقية في الصف.
-         * @param {number} r - رقم الصف (يبدأ من 1).
-         * @param {number} c - رقم العمود (يبدأ من 1).
-         * @param {HTMLTableRowElement[]} rows - صفوف الجدول.
-         * @param {string} field - اسم الحقل.
-         * @returns {boolean} true إذا كانت الإحداثيات صالحة.
-         */
-        function validateCoordinates(r, c, rows, field) {
-            if (r < 1 || c < 1 || r > rows.length) {
-                console.log(`ℹ️ إحداثيات "${field}" غير صالحة: الصف (${r}) خارج النطاق (1-${rows.length})`);
-                return false;
-            }
-            const logicalCols = getLogicalColumnCount(rows[r - 1]);
-            if (c > logicalCols) {
-                console.log(`ℹ️ إحداثيات "${field}" غير صالحة: العمود (${c}) أكبر من عدد الأعمدة المنطقية (${logicalCols}) في الصف ${r}`);
-                return false;
-            }
-            return true;
-        }
-
-        /**
-         * الحصول على الخلية بناءً على الإحداثيات المنطقية مع دعم colspan.
-         * @param {HTMLTableRowElement[]} rows - صفوف الجدول.
-         * @param {number} r - رقم الصف (يبدأ من 1).
-         * @param {number} c - رقم العمود (يبدأ من 1).
-         * @returns {HTMLTableCellElement|null} الخلية أو null.
-         */
-        function getCell(rows, r, c) {
-            const row = rows[r - 1];
-            if (!row) return null;
-            const cells = row.querySelectorAll('td');
-            let logicalIndex = 0;
-            for (let i = 0; i < cells.length; i++) {
-                const colspan = parseInt(cells[i].getAttribute('colspan') || 1);
-                if (c > logicalIndex && c <= logicalIndex + colspan) {
-                    return cells[i];
-                }
-                logicalIndex += colspan;
-            }
-            return null;
-        }
-
-        /**
-         * استخراج الإحداثيات من حقل إدخال.
-         * @param {string} field - اسم الحقل (مثل r_reading).
-         * @returns {number} القيمة (صف أو عمود).
-         */
-        function getInputValue(field) {
-            return parseInt(document.querySelector(`input[name="${field}"]`)?.value || 0);
-        }
-
-        /**
-         * استخراج إحداثيات النموذج.
-         * @returns {Object} كائن يحتوي على الإحداثيات.
-         */
-        function getCoordinates() {
-            return {
-                readingText: [getInputValue('r_reading'), getInputValue('c_reading')],
-                readingImage: [getInputValue('r_reading_img'), getInputValue('c_reading_img')],
-                questionText: [getInputValue('r_question'), getInputValue('c_question')],
-                questionImage: [getInputValue('r_question_img'), getInputValue('c_question_img')],
-                options: [
-                    {
-                        text: [getInputValue('r_opt1'), getInputValue('c_opt1')],
-                        image: [getInputValue('r_opt1_img'), getInputValue('c_opt1_img')]
-                    },
-                    {
-                        text: [getInputValue('r_opt2'), getInputValue('c_opt2')],
-                        image: [getInputValue('r_opt2_img'), getInputValue('c_opt2_img')]
-                    },
-                    {
-                        text: [getInputValue('r_opt3'), getInputValue('c_opt3')],
-                        image: [getInputValue('r_opt3_img'), getInputValue('c_opt3_img')]
-                    },
-                    {
-                        text: [getInputValue('r_opt4'), getInputValue('c_opt4')],
-                        image: [getInputValue('r_opt4_img'), getInputValue('c_opt4_img')]
-                    }
-                ]
-            };
-        }
-
-        /**
-         * استخراج النص النقي من الخلية.
-         * @param {HTMLElement} cell - الخلية.
-         * @returns {string} النص النقي.
-         */
-        function extractPureText(cell) {
-            const text = cell.textContent ? cell.textContent.trim().replace(/\s+/g, ' ') : '';
-            return text || '';
-        }
-
-        /**
-         * استخراج محتوى الخلية.
-         * @param {HTMLTableRowElement[]} rows - صفوف الجدول.
-         * @param {number[]} coord - [صف, عمود].
-         * @param {number} offset - إزاحة الصف.
-         * @param {string} field - اسم الحقل.
-         * @returns {Object} { text, image }.
-         */
-        function extractCell(rows, [r, c], offset = 0, field) {
-            const cell = getCell(rows, r + offset, c);
-            if (!cell) {
-                console.log(`ℹ️ الخلية (${r + offset}, ${c}) لـ "${field}" غير موجودة`);
-                return { text: '', image: null };
-            }
-            const rawHTML = cell.innerHTML;
-            const colspan = cell.getAttribute('colspan') || 1;
-            const text = extractPureText(cell);
-            const image = cell.querySelector('img')?.src || null;
-            console.log(`📄 استخراج "${field}" من (${r + offset}, ${c}): نص="${text}", صورة=${image ? 'موجودة' : 'غير موجودة'}, colspan=${colspan}, HTML=${rawHTML.substring(0, 200) + (rawHTML.length > 200 ? '...' : '')}`);
-            return { text, image };
-        }
-
-        /**
-         * اكتشاف الإجابة الصحيحة بناءً على علامة النجمة.
-         * @param {Object} question - كائن السؤال.
-         * @param {HTMLTableRowElement[]} rows - صفوف الجدول.
-         * @param {number} startRow - رقم الصف الأول.
-         * @param {number} endRow - رقم الصف الأخير.
-         */
-        function detectCorrectAnswer(question, rows, startRow, endRow) {
-            const starPattern = /[\*★✱∗]/;
-            let correctCount = 0;
-
-            question.options.forEach((opt, index) => {
-                if (starPattern.test(opt.text)) {
-                    question.correct = index;
-                    opt.text = opt.text.replace(starPattern, '').trim();
-                    correctCount++;
-                }
-            });
-
-            if (question.correct === -1) {
-                for (let i = startRow; i < endRow && i < rows.length; i++) {
-                    const cells = rows[i].querySelectorAll('td');
-                    cells.forEach((cell, cellIndex) => {
-                        if (starPattern.test(extractPureText(cell))) {
-                            question.correct = cellIndex % 4;
-                            cell.textContent = cell.textContent.replace(starPattern, '').trim();
-                            correctCount++;
-                        }
-                    });
-                }
-            }
-
-            if (correctCount > 1) {
-                console.warn(`⚠️ تم العثور على أكثر من إجابة صحيحة في السؤال`);
-            }
-        }
-
-        /**
-         * استخراج سؤال من جزء من الجدول.
-         * @param {HTMLTableRowElement[]} rows - صفوف الجدول.
-         * @param {Object} coords - إحداثيات النموذج.
-         * @param {number} startRow - رقم الصف الأول.
-         * @param {number} rowsPerQuestion - عدد الصفوف لكل سؤال.
-         * @returns {Object|null} كائن السؤال أو null.
-         */
-        function extractQuestion(rows, coords, startRow, rowsPerQuestion) {
-            if (!rows?.length || startRow >= rows.length) {
-                return null;
-            }
-
-            const questionRows = rows.slice(startRow, startRow + rowsPerQuestion);
-            if (!questionRows.length) {
-                return null;
-            }
-
-            const maxRows = questionRows.length;
-            const maxCols = Math.max(...questionRows.map(row => getLogicalColumnCount(row)));
-            console.log(`📏 أبعاد السؤال (من الصف ${startRow + 1}): ${maxRows} صفوف، بحد أقصى ${maxCols} أعمدة`);
-
-            const fields = [
-                { coord: coords.readingText, name: 'نص قرائي' },
-                { coord: coords.readingImage, name: 'صورة النص' },
-                { coord: coords.questionText, name: 'نص السؤال' },
-                { coord: coords.questionImage, name: 'صورة السؤال' },
-                ...coords.options.map((opt, i) => [
-                    { coord: opt.text, name: `نص الخيار ${i + 1}` },
-                    { coord: opt.image, name: `صورة الخيار ${i + 1}` }
-                ]).flat()
-            ];
-
-            fields.forEach(({ coord, name }) => {
-                const [r, c] = coord;
-                if (r !== 0 && c !== 0 && !validateCoordinates(r, c, questionRows, name)) {
-                    console.log(`ℹ️ إحداثيات "${name}" غير صالحة: (${r}, ${c})`);
-                }
-            });
-
-            const question = {
-                reading: {
-                    text: extractCell(rows, coords.readingText, startRow, 'نص قرائي').text,
-                    image: extractCell(rows, coords.readingImage, startRow, 'صورة النص').image
-                },
-                question: {
-                    text: extractCell(rows, coords.questionText, startRow, 'نص السؤال').text,
-                    image: extractCell(rows, coords.questionImage, startRow, 'صورة السؤال').image
-                },
-                options: coords.options.map((opt, i) => ({
-                    text: extractCell(rows, opt.text, startRow, `نص الخيار ${i + 1}`).text,
-                    image: extractCell(rows, opt.image, startRow, `صورة الخيار ${i + 1}`).image
-                })),
-                correct: -1
-            };
-
-            detectCorrectAnswer(question, rows, startRow, startRow + rowsPerQuestion);
-
-            return (question.reading.text || question.reading.image ||
-                    question.question.text || question.question.image ||
-                    question.options.some(opt => opt.text || opt.image)) ? question : null;
-        }
-
-        /**
-         * معالجة رفع الصور.
-         * @param {Event} event - حدث إدخال الملف.
-         * @param {number} qIndex - رقم السؤال.
-         * @param {string} field - اسم الحقل.
-         */
-        function uploadImage(event, qIndex, field) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = () => {
-                const base64 = reader.result;
-                if (field === 'reading' || field === 'question') {
-                    questions[qIndex][field].image = base64;
-                } else if (field.startsWith('option')) {
-                    const optionIndex = parseInt(field.split('-')[1]);
-                    questions[qIndex].options[optionIndex].image = base64;
-                }
-                renderPreview();
-            };
-            reader.readAsDataURL(file);
-        }
-
-        /**
-         * معالجة ملف Word.
-         */
-        async function processFile() {
-            const fileInput = document.getElementById('docxFile');
-            const file = fileInput.files[0];
-            const rowsPerQuestion = parseInt(document.getElementById('rowsPerQuestion').value) || 5;
-
-            if (!file) {
-                alert("🚨 الرجاء اختيار ملف Word!");
-                return;
-            }
-
-            if (!file.name.endsWith('.docx')) {
-                alert("🚨 يرجى اختيار ملف بصيغة .docx");
-                return;
-            }
-
-            try {
-                const buffer = await file.arrayBuffer();
-                const result = await mammoth.convertToHtml({ arrayBuffer: buffer });
-                console.log(`📜 HTML الناتج: ${result.value.substring(0, 500) + (result.value.length > 500 ? '...' : '')}`);
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = DOMPurify.sanitize(result.value);
-                const tables = tempDiv.querySelectorAll('table');
-                const coords = getCoordinates();
-
-                questions.length = 0;
-
-                if (!tables.length) {
-                    alert("⚠️ لم يتم العثور على جداول في الملف!");
-                    return;
-                }
-
-                tables.forEach((table, tableIndex) => {
-                    const rows = Array.from(table.querySelectorAll('tr'));
-                    let currentRow = 0;
-
-                    while (currentRow < rows.length) {
-                        while (currentRow < rows.length && isRowEmpty(rows[currentRow])) {
-                            currentRow++;
-                        }
-
-                        if (currentRow >= rows.length) break;
-
-                        const question = extractQuestion(rows, coords, currentRow, rowsPerQuestion);
-                        if (question) {
-                            questions.push(question);
-                        }
-
-                        currentRow += rowsPerQuestion;
-                    }
-                });
-
-                renderPreview();
-
-                if (questions.length === 0) {
-                    alert("⚠️ لم يتم استخراج أي أسئلة!");
-                }
-            } catch (err) {
-                alert(`🚨 خطأ في معالجة الملف: ${err.message}`);
-                console.error(err);
-            }
-        }
-
-        /**
-         * عرض معاينة الأسئلة.
-         */
-        function renderPreview() {
-            const container = document.getElementById('outputArea');
-            container.innerHTML = '';
-
-            if (!questions.length) {
-                container.innerHTML = DOMPurify.sanitize('<p>🚫 لا توجد أسئلة مستخرجة.</p>');
-                return;
-            }
-
-            questions.forEach((q, index) => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = DOMPurify.sanitize(`
-                    <h3>🧠 سؤال ${index + 1}</h3>
-                    <div><strong>📘 النص القرائي:</strong>
-                        <textarea onchange="questions[${index}].reading.text=this.value">${q.reading.text}</textarea>
-                        ${q.reading.image ? `<img src="${q.reading.image}">` : ''}
-                        <input type="file" accept="image/*" onchange="uploadImage(event, ${index}, 'reading')">
-                    </div>
-                    <div><strong>❓ السؤال:</strong>
-                        <textarea onchange="questions[${index}].question.text=this.value">${q.question.text}</textarea>
-                        ${q.question.image ? `<img src="${q.question.image}">` : ''}
-                        <input type="file" accept="image/*" onchange="uploadImage(event, ${index}, 'question')">
-                    </div>
-                    <div><strong>🟦 الخيارات:</strong>
-                        <div class="flex">
-                            ${q.options.map((opt, i) => `
-                                <div class="option-box ${q.correct === i ? 'correct' : ''}">
-                                    <label>خيار ${i + 1}</label><br>
-                                    <textarea onchange="questions[${index}].options[${i}].text=this.value">${opt.text}</textarea>
-                                    ${opt.image ? `<img src="${opt.image}">` : ''}
-                                    <input type="file" accept="image/*" onchange="uploadImage(event, ${index}, 'option-${i}')">
-                                    <button class="btn" onclick="questions[${index}].correct=${i}; renderPreview()">✅ إجابة صحيحة</button>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    <button class="btn danger" onclick="questions.splice(${index},1); renderPreview()">🗑️ حذف السؤال</button>
-                `);
-                container.appendChild(card);
-            });
-        }
-
-        /**
-         * تصدير الأسئلة كـ JSON.
-         */
-        function exportJSON() {
-            if (!questions.length) {
-                alert("⚠️ لا يوجد محتوى لتصديره!");
-                return;
-            }
-
-            const json = JSON.stringify(questions, null, 2);
-            const blob = new Blob([json], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'quiz.json';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-    </script>
+      `;
+    });
+    
+    out.innerHTML = html || `<div class="no-data">لا توجد أسئلة تطابق عامل التصفية المحدد</div>`;
+    
+    document.getElementById("totalCount").textContent = `الإجمالي: ${questions.length}`;
+    document.getElementById("missingQuestion").innerHTML = `بدون سؤال: ${missingQ} <button class="filter-btn" onclick="filterQuestions('noQuestion')">🔍</button>`;
+    document.getElementById("missingOptions").innerHTML = `بدون خيارات: ${missingOpts} <button class="filter-btn" onclick="filterQuestions('noOptions')">🔍</button>`;
+    document.getElementById("noCorrect").innerHTML = `بدون إجابة صحيحة: ${noCorrect} <button class="filter-btn" onclick="filterQuestions('noCorrect')">🔍</button>`;
+  }
+  
+  function setCorrectAnswer(qIndex, optIndex) {
+    questions[qIndex].correct = optIndex;
+    renderPreview();
+  }
+  
+  function deleteQuestion(index) {
+    if (confirm(`هل أنت متأكد من حذف السؤال ${index + 1}؟`)) {
+      questions.splice(index, 1);
+      renderPreview();
+    }
+  }
+  
+  function filterQuestions(type) {
+    window.activeFilter = type;
+    renderPreview();
+  }
+  
+  function uploadImage(event, index, field) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      if (field === 'readingImage') {
+        questions[index].reading.image = e.target.result;
+      } else if (field === 'questionImage') {
+        questions[index].question.image = e.target.result;
+      }
+      renderPreview();
+    };
+    reader.readAsDataURL(event.target.files[0]);
+  }
+  
+  function uploadOptionImage(event, index, j) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      questions[index].optionImages[j] = e.target.result;
+      questions[index].options[j].image = e.target.result;
+      renderPreview();
+    };
+    reader.readAsDataURL(event.target.files[0]);
+  }
+  
+  function exportJSON() {
+    if (!questions.length) {
+      alert("⚠️ لا يوجد أسئلة للتصدير!");
+      return;
+    }
+  
+    const cleaned = questions.map(q => ({
+      reading: {
+        text: q.reading.text,
+        image: q.reading.image || null
+      },
+      question: {
+        text: q.question.text,
+        image: q.question.image || null
+      },
+      options: q.options.map(opt => ({
+        text: opt.text,
+        image: opt.image || null
+      })),
+      correct: q.correct
+    }));
+  
+    const blob = new Blob([JSON.stringify(cleaned, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `quiz-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+  }
+  
+  function clearAll() {
+    if (questions.length > 0 && confirm("هل أنت متأكد من حذف جميع الأسئلة؟")) {
+      questions = [];
+      document.getElementById("docxFile").value = "";
+      renderPreview();
+    }
+  }
+  
+  // إضافة الحدث عند تغيير القيم
+  document.querySelectorAll('input[type="number"]').forEach(input => {
+    input.addEventListener('input', function() {
+      const value = parseInt(this.value) || 0;
+      if (value < 1) {
+        this.classList.add('invalid');
+      } else {
+        this.classList.remove('invalid');
+      }
+    });
+  });
+  </script>
 </body>
 </html>
