@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
   <head>
@@ -174,12 +175,17 @@
       }
       .file-input {
         position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
         opacity: 0;
         width: 100%;
         height: 100%;
         cursor: pointer;
       }
       .file-input-label {
+        position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -193,6 +199,7 @@
         font-weight: 600;
         text-align: center;
         border: 2px solid rgba(255, 255, 255, 0.2);
+        width: 100%;
       }
       .upload-icon {
         display: flex;
@@ -461,9 +468,15 @@
       }
       .image-actions {
         display: flex;
+        flex-direction: column;
         gap: 10px;
         margin-top: 10px;
-        flex-wrap: wrap;
+        align-items: stretch;
+      }
+      .image-actions .btn,
+      .image-actions .file-input-label {
+        width: 100%;
+        margin: 0;
       }
       .feature-badge {
         position: absolute;
@@ -992,6 +1005,7 @@
         /* ========= الحالة العامة ========= */
         let currentFiles = [];
         const questions = [];
+        window.questions = questions;
 
         /* ========= أدوات الواجهة ========= */
         function showAlert(message, type) {
@@ -1561,7 +1575,8 @@
               </div>
             `
               )
-              .join("")}
+              .join("")
+            }
           </div>
         </div>`;
 
@@ -2029,3 +2044,4 @@
     </script>
   </body>
 </html>
+
